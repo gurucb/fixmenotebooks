@@ -1,0 +1,500 @@
+{
+	"name": "Notebook 4",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "fixmespark",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"runAsWorkspaceSystemIdentity": false,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "c9fbdb47-c469-4869-8591-4722692f824e"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"synapse_widget": {
+				"version": "0.1"
+			},
+			"enableDebugMode": false,
+			"kernelspec": {
+				"name": "synapse_pyspark",
+				"display_name": "Synapse PySpark"
+			},
+			"language_info": {
+				"name": "python"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/7b163b55-8110-4062-918b-a061af34f94f/resourceGroups/fix.me.rg/providers/Microsoft.Synapse/workspaces/fixme-synapse-workspace/bigDataPools/fixmespark",
+				"name": "fixmespark",
+				"type": "Spark",
+				"endpoint": "https://fixme-synapse-workspace.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/fixmespark",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net",
+					"authHeader": null
+				},
+				"sparkVersion": "3.2",
+				"nodeCount": 10,
+				"cores": 4,
+				"memory": 28,
+				"extraHeader": null
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "code",
+				"source": [
+					"df = spark.read.load('abfss://fixme@fixmeadlsstorage.dfs.core.windows.net/covid_data.csv', format='csv',header='true')\r\n",
+					"print((df.count(), len(df.columns)))\r\n",
+					"print(df.head())\r\n",
+					"print (df.dtypes)"
+				],
+				"attachments": null,
+				"execution_count": 27
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"import numpy as np\r\n",
+					"from pyspark.sql.functions import *\r\n",
+					"from pyspark.sql.types import *\r\n",
+					"from pyspark.ml.feature import StringIndexer"
+				],
+				"attachments": null,
+				"execution_count": 28
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"df.describe().toPandas()"
+				],
+				"attachments": null,
+				"execution_count": 8
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"\r\n",
+					"string_indexer = StringIndexer(inputCols=['location','country', 'gender', 'symptom1', 'symptom2', 'symptom3', 'symptom4','symptom5','symptom6'], \r\n",
+					"outputCols=['location_indexed','country_indexed', 'gender_indexed', 'symptom1_indexed', 'symptom2_indexed', 'symptom3_indexed', 'symptom4_indexed','symptom5_indexed','symptom6_indexed'])\r\n",
+					"df = string_indexer.fit(df).transform(df)\r\n",
+					"df.columns"
+				],
+				"attachments": null,
+				"execution_count": 29
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"#df = df.withColumn(\"sym_on\", unix_timestamp(col(\"sym_on\"),\"M/d/yyyy\").alias(\"sym_on\"))\r\n",
+					"#df = df.withColumn(\"sym_on\", unix_timestamp(col(\"sym_on\"),\"M/d/yyyy\").alias(\"sym_on\"))\r\n",
+					"diff_sym_hos = unix_timestamp(col(\"hosp_vis\"),\"M/d/yyyy\")-unix_timestamp(col(\"sym_on\"),\"M/d/yyyy\")\r\n",
+					"df = df.withColumn('diff_sym_hos', diff_sym_hos)"
+				],
+				"attachments": null,
+				"execution_count": 30
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"df.printSchema()"
+				],
+				"attachments": null,
+				"execution_count": 31
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"df = df.withColumn(\"age\", col(\"age\").cast(\"Integer\"))\r\n",
+					"df = df.withColumn(\"vis_wuhan\", col(\"vis_wuhan\").cast(\"Integer\"))\r\n",
+					"df = df.withColumn(\"from_wuhan\", col(\"from_wuhan\").cast(\"Integer\"))\r\n",
+					"df = df.withColumn(\"death\", col(\"death\").cast(\"Integer\"))\r\n",
+					"df = df.fillna(value=50, subset=['age'])\r\n",
+					"df.printSchema()"
+				],
+				"attachments": null,
+				"execution_count": 32
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"df = df.fillna(np.nan)\r\n",
+					"df.limit(10)\r\n",
+					""
+				],
+				"attachments": null,
+				"execution_count": 33
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"print((df.count(), len(df.columns)))\r\n",
+					"print(df.head())\r\n",
+					"print (df.dtypes)\r\n",
+					"df.show()"
+				],
+				"attachments": null,
+				"execution_count": 34
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"df = df.drop('id', 'location', 'gender', 'country', 'sym_on', 'hosp_vis', 'symptom1', 'symptom2', 'symptom3', 'symptom4', 'symptom5', 'symptom6')\r\n",
+					""
+				],
+				"attachments": null,
+				"execution_count": 36
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"df.printSchema()"
+				],
+				"attachments": null,
+				"execution_count": 16
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"from pyspark.ml.classification import DecisionTreeClassifier\r\n",
+					"from pyspark.ml.feature import VectorAssembler\r\n",
+					"from pyspark.ml.evaluation import MulticlassClassificationEvaluator"
+				],
+				"attachments": null,
+				"execution_count": 37
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"input_features = ['location_indexed','country_indexed','gender_indexed','age','vis_wuhan','from_wuhan','symptom1_indexed','symptom2_indexed','symptom3_indexed','symptom4_indexed','symptom5_indexed','symptom6_indexed','diff_sym_hos']\r\n",
+					"assembler = VectorAssembler(inputCols=input_features, outputCol='features')\r\n",
+					"transformed_data = assembler.transform(df)"
+				],
+				"attachments": null,
+				"execution_count": 38
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"input = df[input_features]\r\n",
+					"label = df[death]"
+				],
+				"attachments": null,
+				"execution_count": 39
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"train_data,test_data = transformed_data.randomSplit([0.8,0.2])\r\n",
+					"dt = DecisionTreeClassifier(labelCol='death', featuresCol='features',maxDepth=2)\r\n",
+					"dt_model = dt.fit(train_data)"
+				],
+				"attachments": null,
+				"execution_count": 19
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"train_data.count()"
+				],
+				"attachments": null,
+				"execution_count": 20
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"dt_preds = dt_model.transform(test_data)\r\n",
+					"accuracy_eval = MulticlassClassificationEvaluator(predictionCol='prediction',metricName='accuracy', labelCol='death')\r\n",
+					"precision_eval = MulticlassClassificationEvaluator(predictionCol='prediction',metricName='weightedPrecision', labelCol='death')\r\n",
+					"recall_eval = MulticlassClassificationEvaluator(predictionCol='prediction',metricName='weightedRecall', labelCol='death')\r\n",
+					"f1_eval = MulticlassClassificationEvaluator(predictionCol='prediction',metricName='f1', labelCol='death')\r\n",
+					"accuracy = accuracy_eval.evaluate(dt_preds)\r\n",
+					"precision = precision_eval.evaluate(dt_preds)\r\n",
+					"recall = recall_eval.evaluate(dt_preds)\r\n",
+					"f1 = f1_eval.evaluate(dt_preds)\r\n",
+					"print('accuracy:')\r\n",
+					"print(accuracy)\r\n",
+					"print('precision:')\r\n",
+					"print(precision)\r\n",
+					"print('recall:')\r\n",
+					"print(recall)\r\n",
+					"print('f1:')\r\n",
+					"print(f1)"
+				],
+				"attachments": null,
+				"execution_count": 21
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"import matplotlib.pyplot as plt\r\n",
+					"from sklearn.tree import export_graphviz, plot_tree\r\n",
+					"from IPython.display import Image  \r\n",
+					"import pydotplus"
+				],
+				"attachments": null,
+				"execution_count": 24
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"plot_tree(dt_model, filled=True)\r\n",
+					"plt.title(\"Decision tree trained on all the Covid Data\")\r\n",
+					"plt.show()"
+				],
+				"attachments": null,
+				"execution_count": 23
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"plt.bar(['Accuracy','F1 Score','Recall Score','Precision Score'],[accuracy,f1,recall,precision],color=['red','green','blue','yellow'])\r\n",
+					"plt.plot([accuracy,f1,recall,precision],color='black')\r\n",
+					"plt.title('Evaluation Metrics for Decision Tree')"
+				],
+				"attachments": null,
+				"execution_count": 25
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"plt.savefig('metrics.png')"
+				],
+				"attachments": null,
+				"execution_count": null
+			}
+		]
+	}
+}
