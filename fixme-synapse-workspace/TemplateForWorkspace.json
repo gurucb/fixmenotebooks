@@ -196,7 +196,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "9a6de371-aa36-4990-b0a0-1db1a81b8012"
+						"spark.autotune.trackingId": "c9fbdb47-c469-4869-8591-4722692f824e"
 					}
 				},
 				"metadata": {
@@ -216,26 +216,27 @@
 						"endpoint": "https://fixme-synapse-workspace.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/fixmespark",
 						"auth": {
 							"type": "AAD",
-							"authResource": "https://dev.azuresynapse.net"
+							"authResource": "https://dev.azuresynapse.net",
+							"authHeader": null
 						},
 						"sparkVersion": "3.2",
 						"nodeCount": 10,
 						"cores": 4,
 						"memory": 28,
-						"automaticScaleJobs": false
+						"extraHeader": null
 					},
 					"sessionKeepAliveTimeout": 30
 				},
 				"cells": [
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"df = spark.read.load('abfss://fixme@fixmeadlsstorage.dfs.core.windows.net/covid_data.csv', format='csv',header='true')\r\n",
 							"print((df.count(), len(df.columns)))\r\n",
 							"print(df.head())\r\n",
 							"print (df.dtypes)"
 						],
+						"attachments": null,
 						"outputs": [],
 						"execution_count": 27
 					},
@@ -258,6 +259,7 @@
 							"from pyspark.sql.types import *\r\n",
 							"from pyspark.ml.feature import StringIndexer"
 						],
+						"attachments": null,
 						"outputs": [],
 						"execution_count": 28
 					},
@@ -277,6 +279,7 @@
 						"source": [
 							"df.describe().toPandas()"
 						],
+						"attachments": null,
 						"outputs": [],
 						"execution_count": 8
 					},
@@ -300,6 +303,7 @@
 							"df = string_indexer.fit(df).transform(df)\r\n",
 							"df.columns"
 						],
+						"attachments": null,
 						"outputs": [],
 						"execution_count": 29
 					},
@@ -322,6 +326,7 @@
 							"diff_sym_hos = unix_timestamp(col(\"hosp_vis\"),\"M/d/yyyy\")-unix_timestamp(col(\"sym_on\"),\"M/d/yyyy\")\r\n",
 							"df = df.withColumn('diff_sym_hos', diff_sym_hos)"
 						],
+						"attachments": null,
 						"outputs": [],
 						"execution_count": 30
 					},
@@ -341,6 +346,7 @@
 						"source": [
 							"df.printSchema()"
 						],
+						"attachments": null,
 						"outputs": [],
 						"execution_count": 31
 					},
@@ -365,6 +371,7 @@
 							"df = df.fillna(value=50, subset=['age'])\r\n",
 							"df.printSchema()"
 						],
+						"attachments": null,
 						"outputs": [],
 						"execution_count": 32
 					},
@@ -386,6 +393,7 @@
 							"df.limit(10)\r\n",
 							""
 						],
+						"attachments": null,
 						"outputs": [],
 						"execution_count": 33
 					},
@@ -408,6 +416,7 @@
 							"print (df.dtypes)\r\n",
 							"df.show()"
 						],
+						"attachments": null,
 						"outputs": [],
 						"execution_count": 34
 					},
@@ -428,6 +437,7 @@
 							"df = df.drop('id', 'location', 'gender', 'country', 'sym_on', 'hosp_vis', 'symptom1', 'symptom2', 'symptom3', 'symptom4', 'symptom5', 'symptom6')\r\n",
 							""
 						],
+						"attachments": null,
 						"outputs": [],
 						"execution_count": 36
 					},
@@ -447,6 +457,7 @@
 						"source": [
 							"df.printSchema()"
 						],
+						"attachments": null,
 						"outputs": [],
 						"execution_count": 16
 					},
@@ -468,6 +479,7 @@
 							"from pyspark.ml.feature import VectorAssembler\r\n",
 							"from pyspark.ml.evaluation import MulticlassClassificationEvaluator"
 						],
+						"attachments": null,
 						"outputs": [],
 						"execution_count": 37
 					},
@@ -489,6 +501,7 @@
 							"assembler = VectorAssembler(inputCols=input_features, outputCol='features')\r\n",
 							"transformed_data = assembler.transform(df)"
 						],
+						"attachments": null,
 						"outputs": [],
 						"execution_count": 38
 					},
@@ -509,6 +522,7 @@
 							"input = df[input_features]\r\n",
 							"label = df[death]"
 						],
+						"attachments": null,
 						"outputs": [],
 						"execution_count": 39
 					},
@@ -530,6 +544,7 @@
 							"dt = DecisionTreeClassifier(labelCol='death', featuresCol='features',maxDepth=2)\r\n",
 							"dt_model = dt.fit(train_data)"
 						],
+						"attachments": null,
 						"outputs": [],
 						"execution_count": 19
 					},
@@ -549,6 +564,7 @@
 						"source": [
 							"train_data.count()"
 						],
+						"attachments": null,
 						"outputs": [],
 						"execution_count": 20
 					},
@@ -584,6 +600,7 @@
 							"print('f1:')\r\n",
 							"print(f1)"
 						],
+						"attachments": null,
 						"outputs": [],
 						"execution_count": 21
 					},
@@ -606,6 +623,7 @@
 							"from IPython.display import Image  \r\n",
 							"import pydotplus"
 						],
+						"attachments": null,
 						"outputs": [],
 						"execution_count": 24
 					},
@@ -627,6 +645,7 @@
 							"plt.title(\"Decision tree trained on all the Covid Data\")\r\n",
 							"plt.show()"
 						],
+						"attachments": null,
 						"outputs": [],
 						"execution_count": 23
 					},
@@ -648,6 +667,7 @@
 							"plt.plot([accuracy,f1,recall,precision],color='black')\r\n",
 							"plt.title('Evaluation Metrics for Decision Tree')"
 						],
+						"attachments": null,
 						"outputs": [],
 						"execution_count": 25
 					},
@@ -667,6 +687,7 @@
 						"source": [
 							"plt.savefig('metrics.png')"
 						],
+						"attachments": null,
 						"outputs": [],
 						"execution_count": null
 					}
@@ -760,7 +781,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "d211335f-7866-41e9-9b2f-f977b6361061"
+						"spark.autotune.trackingId": "14d8c3ab-379e-44fb-b050-4d58fc57c571"
 					}
 				},
 				"metadata": {
@@ -785,15 +806,13 @@
 						"sparkVersion": "3.2",
 						"nodeCount": 10,
 						"cores": 4,
-						"memory": 28,
-						"automaticScaleJobs": false
+						"memory": 28
 					},
 					"sessionKeepAliveTimeout": 30
 				},
 				"cells": [
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"import numpy as np\r\n",
 							"from matplotlib import pyplot as plt"
@@ -1035,7 +1054,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "2c15d308-3eea-42c0-b630-f86a26db8d44"
+						"spark.autotune.trackingId": "b7306ef3-02fc-4cb8-bae4-128c58790892"
 					}
 				},
 				"metadata": {
@@ -1060,13 +1079,15 @@
 						"sparkVersion": "3.2",
 						"nodeCount": 10,
 						"cores": 4,
-						"memory": 28
+						"memory": 28,
+						"automaticScaleJobs": false
 					},
 					"sessionKeepAliveTimeout": 30
 				},
 				"cells": [
 					{
 						"cell_type": "code",
+						"metadata": {},
 						"source": [
 							"import numpy as np\r\n",
 							"from pyspark.sql.functions import *\r\n",
@@ -1075,7 +1096,66 @@
 							"from matplotlib import pyplot as plt"
 						],
 						"outputs": [],
-						"execution_count": 2
+						"execution_count": 25
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"s_df = spark.read.load('abfss://fixme@fixmeadlsstorage.dfs.core.windows.net/dbo.Survey.parquet', format='parquet')\r\n",
+							"print((s_df.count(), len(s_df.columns)))"
+						],
+						"outputs": [],
+						"execution_count": 41
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"count_df = s_df.groupby(['specialization']).count()\r\n",
+							"count_df"
+						],
+						"outputs": [],
+						"execution_count": 42
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"print(count_df.show())"
+						],
+						"outputs": [],
+						"execution_count": 43
 					},
 					{
 						"cell_type": "code",
@@ -1095,7 +1175,7 @@
 							"df = spark.read.load('abfss://fixme@fixmeadlsstorage.dfs.core.windows.net/covid_data.csv', format='csv',header='true')"
 						],
 						"outputs": [],
-						"execution_count": 9
+						"execution_count": 26
 					},
 					{
 						"cell_type": "code",
@@ -1114,7 +1194,7 @@
 							"df.describe().toPandas()"
 						],
 						"outputs": [],
-						"execution_count": 8
+						"execution_count": 27
 					},
 					{
 						"cell_type": "code",
@@ -1136,7 +1216,7 @@
 							"df.columns"
 						],
 						"outputs": [],
-						"execution_count": 10
+						"execution_count": 28
 					},
 					{
 						"cell_type": "code",
@@ -1156,7 +1236,7 @@
 							"df = df.withColumn('diff_sym_hos', diff_sym_hos)"
 						],
 						"outputs": [],
-						"execution_count": 11
+						"execution_count": 30
 					},
 					{
 						"cell_type": "code",
@@ -1175,7 +1255,7 @@
 							"df.printSchema()"
 						],
 						"outputs": [],
-						"execution_count": 12
+						"execution_count": 31
 					},
 					{
 						"cell_type": "code",
@@ -1199,7 +1279,7 @@
 							"df.printSchema()"
 						],
 						"outputs": [],
-						"execution_count": 13
+						"execution_count": 32
 					},
 					{
 						"cell_type": "code",
@@ -1219,7 +1299,7 @@
 							"df.limit(10)"
 						],
 						"outputs": [],
-						"execution_count": 14
+						"execution_count": 33
 					},
 					{
 						"cell_type": "code",
@@ -1238,7 +1318,7 @@
 							"df = df.drop('id', 'location', 'gender', 'country', 'sym_on', 'hosp_vis', 'symptom1', 'symptom2', 'symptom3', 'symptom4', 'symptom5', 'symptom6')"
 						],
 						"outputs": [],
-						"execution_count": 15
+						"execution_count": 34
 					},
 					{
 						"cell_type": "code",
@@ -1258,7 +1338,7 @@
 							""
 						],
 						"outputs": [],
-						"execution_count": 16
+						"execution_count": 35
 					},
 					{
 						"cell_type": "code",
@@ -1280,7 +1360,7 @@
 							"from sklearn import metrics"
 						],
 						"outputs": [],
-						"execution_count": 17
+						"execution_count": 36
 					},
 					{
 						"cell_type": "code",
@@ -1305,7 +1385,7 @@
 							""
 						],
 						"outputs": [],
-						"execution_count": 18
+						"execution_count": 37
 					},
 					{
 						"cell_type": "code",
@@ -1327,7 +1407,7 @@
 							"# plt.savefig() GIVE THE PATH"
 						],
 						"outputs": [],
-						"execution_count": 19
+						"execution_count": 38
 					},
 					{
 						"cell_type": "code",
@@ -1354,7 +1434,7 @@
 							"print(\"F1:\", f1)"
 						],
 						"outputs": [],
-						"execution_count": 20
+						"execution_count": 39
 					},
 					{
 						"cell_type": "code",
@@ -1375,7 +1455,7 @@
 							"plt.title('Evaluation Metrics for Decision Tree')"
 						],
 						"outputs": [],
-						"execution_count": 21
+						"execution_count": 40
 					}
 				]
 			},
