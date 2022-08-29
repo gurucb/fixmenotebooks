@@ -18,7 +18,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "c0bf8bae-98d3-415c-b6e8-6e2ea1904915"
+				"spark.autotune.trackingId": "3888e1f4-2f8e-4aee-b55a-5a65a8da6610"
 			}
 		},
 		"metadata": {
@@ -38,14 +38,13 @@
 				"endpoint": "https://fixme-synapse-workspace.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/fixmespark",
 				"auth": {
 					"type": "AAD",
-					"authResource": "https://dev.azuresynapse.net",
-					"authHeader": null
+					"authResource": "https://dev.azuresynapse.net"
 				},
 				"sparkVersion": "3.2",
 				"nodeCount": 10,
 				"cores": 4,
 				"memory": 28,
-				"extraHeader": null
+				"automaticScaleJobs": false
 			},
 			"sessionKeepAliveTimeout": 30
 		},
@@ -54,10 +53,22 @@
 				"cell_type": "code",
 				"source": [
 					"import numpy as np\r\n",
-					""
+					"from matplotlib import pyplot as plt"
 				],
-				"attachments": null,
-				"execution_count": 23
+				"execution_count": 13
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Import Doctors metadata into spark notebook from ADLS."
+				]
 			},
 			{
 				"cell_type": "code",
@@ -80,8 +91,20 @@
 					"df = spark.read.load('abfss://fixme@fixmeadlsstorage.dfs.core.windows.net/dbo.Doctor.parquet', format='parquet')\r\n",
 					"print((df.count(), len(df.columns)))"
 				],
-				"attachments": null,
-				"execution_count": 24
+				"execution_count": 3
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Import Survey (symptoms) data from patients before scheduling session with doctors"
+				]
 			},
 			{
 				"cell_type": "code",
@@ -100,16 +123,11 @@
 					"s_df = spark.read.load('abfss://fixme@fixmeadlsstorage.dfs.core.windows.net/dbo.Survey.parquet', format='parquet')\r\n",
 					"print((s_df.count(), len(s_df.columns)))"
 				],
-				"attachments": null,
-				"execution_count": null
+				"execution_count": 4
 			},
 			{
-				"cell_type": "code",
+				"cell_type": "markdown",
 				"metadata": {
-					"jupyter": {
-						"source_hidden": false,
-						"outputs_hidden": false
-					},
 					"nteract": {
 						"transient": {
 							"deleting": false
@@ -117,50 +135,8 @@
 					}
 				},
 				"source": [
-					"count_df = s_df.groupby(['specialization']).count()\r\n",
-					"count_df"
-				],
-				"attachments": null,
-				"execution_count": null
-			},
-			{
-				"cell_type": "code",
-				"metadata": {
-					"jupyter": {
-						"source_hidden": false,
-						"outputs_hidden": false
-					},
-					"nteract": {
-						"transient": {
-							"deleting": false
-						}
-					}
-				},
-				"source": [
-					"print(count_df.show())"
-				],
-				"attachments": null,
-				"execution_count": null
-			},
-			{
-				"cell_type": "code",
-				"metadata": {
-					"jupyter": {
-						"source_hidden": false,
-						"outputs_hidden": false
-					},
-					"nteract": {
-						"transient": {
-							"deleting": false
-						}
-					}
-				},
-				"source": [
-					"u_df = spark.read.load('abfss://fixme@fixmeadlsstorage.dfs.core.windows.net/dbo.UserProfile.parquet', format='parquet')\r\n",
-					"print((u_df.count(), len(u_df.columns)))"
-				],
-				"attachments": null,
-				"execution_count": null
+					"## Import Interview Schedule (doctors appointement) data"
+				]
 			},
 			{
 				"cell_type": "code",
@@ -179,7 +155,38 @@
 					"is_df = spark.read.load('abfss://fixme@fixmeadlsstorage.dfs.core.windows.net/dbo.InterviewSchedule.parquet', format='parquet')\r\n",
 					"print((is_df.count(), len(is_df.columns)))"
 				],
-				"attachments": null,
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Import User Profile Data"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"u_df = spark.read.load('abfss://fixme@fixmeadlsstorage.dfs.core.windows.net/dbo.UserProfile.parquet', format='parquet')\r\n",
+					"print((u_df.count(), len(u_df.columns)))"
+				],
 				"execution_count": null
 			},
 			{
@@ -199,8 +206,57 @@
 					"id_df = spark.read.load('abfss://fixme@fixmeadlsstorage.dfs.core.windows.net/dbo.InterviewData.parquet', format='parquet')\r\n",
 					"print((id_df.count(), len(id_df.columns)))"
 				],
-				"attachments": null,
 				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Identify Doctor speciality load (Number of patients per doctor type)"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"count_df = s_df.groupby(['specialization']).count()\r\n",
+					"count_df"
+				],
+				"execution_count": 5
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"print(count_df.show())"
+				],
+				"execution_count": 19
 			}
 		]
 	}

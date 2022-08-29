@@ -18,7 +18,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "3f7515b4-e4c5-4226-929c-a373b50e63f4"
+				"spark.autotune.trackingId": "2c15d308-3eea-42c0-b630-f86a26db8d44"
 			}
 		},
 		"metadata": {
@@ -38,14 +38,13 @@
 				"endpoint": "https://fixme-synapse-workspace.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/fixmespark",
 				"auth": {
 					"type": "AAD",
-					"authResource": "https://dev.azuresynapse.net",
-					"authHeader": null
+					"authResource": "https://dev.azuresynapse.net"
 				},
 				"sparkVersion": "3.2",
 				"nodeCount": 10,
 				"cores": 4,
 				"memory": 28,
-				"extraHeader": null
+				"automaticScaleJobs": false
 			},
 			"sessionKeepAliveTimeout": 30
 		},
@@ -59,8 +58,7 @@
 					"from pyspark.ml.feature import StringIndexer\r\n",
 					"from matplotlib import pyplot as plt"
 				],
-				"attachments": null,
-				"execution_count": 15
+				"execution_count": 2
 			},
 			{
 				"cell_type": "code",
@@ -79,8 +77,7 @@
 					"## Reading Data\r\n",
 					"df = spark.read.load('abfss://fixme@fixmeadlsstorage.dfs.core.windows.net/covid_data.csv', format='csv',header='true')"
 				],
-				"attachments": null,
-				"execution_count": 16
+				"execution_count": 9
 			},
 			{
 				"cell_type": "code",
@@ -98,8 +95,7 @@
 				"source": [
 					"df.describe().toPandas()"
 				],
-				"attachments": null,
-				"execution_count": 17
+				"execution_count": 8
 			},
 			{
 				"cell_type": "code",
@@ -120,8 +116,7 @@
 					"df = string_indexer.fit(df).transform(df)\r\n",
 					"df.columns"
 				],
-				"attachments": null,
-				"execution_count": 18
+				"execution_count": 10
 			},
 			{
 				"cell_type": "code",
@@ -140,8 +135,7 @@
 					"diff_sym_hos = unix_timestamp(col(\"hosp_vis\"),\"M/d/yyyy\")-unix_timestamp(col(\"sym_on\"),\"M/d/yyyy\")\r\n",
 					"df = df.withColumn('diff_sym_hos', diff_sym_hos)"
 				],
-				"attachments": null,
-				"execution_count": 19
+				"execution_count": 11
 			},
 			{
 				"cell_type": "code",
@@ -159,8 +153,7 @@
 				"source": [
 					"df.printSchema()"
 				],
-				"attachments": null,
-				"execution_count": 20
+				"execution_count": 12
 			},
 			{
 				"cell_type": "code",
@@ -183,8 +176,7 @@
 					"df = df.fillna(value=50, subset=['age'])\r\n",
 					"df.printSchema()"
 				],
-				"attachments": null,
-				"execution_count": 21
+				"execution_count": 13
 			},
 			{
 				"cell_type": "code",
@@ -203,8 +195,7 @@
 					"df = df.fillna(np.nan)\r\n",
 					"df.limit(10)"
 				],
-				"attachments": null,
-				"execution_count": 22
+				"execution_count": 14
 			},
 			{
 				"cell_type": "code",
@@ -222,8 +213,7 @@
 				"source": [
 					"df = df.drop('id', 'location', 'gender', 'country', 'sym_on', 'hosp_vis', 'symptom1', 'symptom2', 'symptom3', 'symptom4', 'symptom5', 'symptom6')"
 				],
-				"attachments": null,
-				"execution_count": 23
+				"execution_count": 15
 			},
 			{
 				"cell_type": "code",
@@ -242,8 +232,7 @@
 					"input_features = ['location_indexed','country_indexed','gender_indexed','age','vis_wuhan','from_wuhan','symptom1_indexed','symptom2_indexed','symptom3_indexed','symptom4_indexed','symptom5_indexed','symptom6_indexed','diff_sym_hos']\r\n",
 					""
 				],
-				"attachments": null,
-				"execution_count": 24
+				"execution_count": 16
 			},
 			{
 				"cell_type": "code",
@@ -264,8 +253,7 @@
 					"from sklearn.tree import plot_tree\r\n",
 					"from sklearn import metrics"
 				],
-				"attachments": null,
-				"execution_count": 26
+				"execution_count": 17
 			},
 			{
 				"cell_type": "code",
@@ -289,8 +277,7 @@
 					"dt = DecisionTreeClassifier(max_depth=2).fit(X_train, y_train)\r\n",
 					""
 				],
-				"attachments": null,
-				"execution_count": 25
+				"execution_count": 18
 			},
 			{
 				"cell_type": "code",
@@ -311,8 +298,7 @@
 					"plt.show()\r\n",
 					"# plt.savefig() GIVE THE PATH"
 				],
-				"attachments": null,
-				"execution_count": 13
+				"execution_count": 19
 			},
 			{
 				"cell_type": "code",
@@ -338,8 +324,7 @@
 					"print(\"Recall:\", recall)\r\n",
 					"print(\"F1:\", f1)"
 				],
-				"attachments": null,
-				"execution_count": 27
+				"execution_count": 20
 			},
 			{
 				"cell_type": "code",
@@ -359,43 +344,7 @@
 					"plt.plot([accuracy,f1,recall,precision],color='black')\r\n",
 					"plt.title('Evaluation Metrics for Decision Tree')"
 				],
-				"attachments": null,
-				"execution_count": 29
-			},
-			{
-				"cell_type": "code",
-				"metadata": {
-					"jupyter": {
-						"source_hidden": false,
-						"outputs_hidden": false
-					},
-					"nteract": {
-						"transient": {
-							"deleting": false
-						}
-					}
-				},
-				"source": [
-					"dt_preds = dt_model.transform(test_data)\r\n",
-					"accuracy_eval = MulticlassClassificationEvaluator(predictionCol='prediction',metricName='accuracy', labelCol='death')\r\n",
-					"precision_eval = MulticlassClassificationEvaluator(predictionCol='prediction',metricName='weightedPrecision', labelCol='death')\r\n",
-					"recall_eval = MulticlassClassificationEvaluator(predictionCol='prediction',metricName='weightedRecall', labelCol='death')\r\n",
-					"f1_eval = MulticlassClassificationEvaluator(predictionCol='prediction',metricName='f1', labelCol='death')\r\n",
-					"accuracy = accuracy_eval.evaluate(dt_preds)\r\n",
-					"precision = precision_eval.evaluate(dt_preds)\r\n",
-					"recall = recall_eval.evaluate(dt_preds)\r\n",
-					"f1 = f1_eval.evaluate(dt_preds)\r\n",
-					"print('accuracy:')\r\n",
-					"print(accuracy)\r\n",
-					"print('precision:')\r\n",
-					"print(precision)\r\n",
-					"print('recall:')\r\n",
-					"print(recall)\r\n",
-					"print('f1:')\r\n",
-					"print(f1)"
-				],
-				"attachments": null,
-				"execution_count": 14
+				"execution_count": 21
 			}
 		]
 	}
